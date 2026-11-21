@@ -28,6 +28,7 @@ final class RingView: NSView {
     var radius: CGFloat = 25
     var stroke: CGFloat = 2.4
     var tint = NSColor.controlAccentColor
+    var leftTint = NSColor.controlAccentColor
     var rightTint = NSColor.systemPurple
     var ringOpacity: CGFloat = 0.85
     var heldButton: Int? = nil
@@ -44,7 +45,8 @@ final class RingView: NSView {
         NSColor.white.withAlphaComponent(0.8 * ringOpacity).setStroke()
         path.lineWidth = thickness + 0.9
         path.stroke()
-        (heldButton == 1 ? rightTint : tint).withAlphaComponent(ringOpacity).setStroke()
+        let color = heldButton == nil ? tint : (heldButton == 1 ? rightTint : leftTint)
+        color.withAlphaComponent(ringOpacity).setStroke()
         path.lineWidth = thickness
         path.stroke()
     }
@@ -69,6 +71,7 @@ final class PointerOverlay {
         ring.radius = preferences.radius
         ring.stroke = preferences.lineWidth
         ring.tint = preferences.tint.nsColor
+        ring.leftTint = preferences.leftClickColor
         ring.rightTint = preferences.rightClickColor
         ring.needsDisplay = true
         if preferences.running && (preferences.ringEnabled || preferences.clicksEnabled) {
@@ -125,7 +128,7 @@ final class PointerOverlay {
             shape.path = CGPath(ellipseIn: CGRect(x: size / 2 - r, y: size / 2 - r,
                                                  width: r * 2, height: r * 2), transform: nil)
             shape.fillColor = nil
-            shape.strokeColor = (right ? preferences.rightClickColor : preferences.tint.nsColor).cgColor
+            shape.strokeColor = (right ? preferences.rightClickColor : preferences.leftClickColor).cgColor
             shape.lineWidth = 2
             shape.shadowColor = NSColor.black.cgColor
             shape.shadowOpacity = 0.18

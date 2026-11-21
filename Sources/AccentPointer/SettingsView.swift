@@ -87,26 +87,52 @@ struct SettingsView: View {
             }
             .disabled(!preferences.ringEnabled)
             Divider().opacity(0.6)
-            featureHeader("Клики", detail: "Кнопки отличаются цветом и формой волны.", icon: "dot.radiowaves.left.and.right", enabled: $preferences.clicksEnabled)
-            HStack(spacing: 22) {
-                Label {
-                    Text("Левый — одна волна")
-                } icon: {
-                    Circle().strokeBorder(preferences.tint.color, lineWidth: 1.5).frame(width: 15, height: 15)
+            featureHeader("Клики", detail: "Отдельный цвет для каждой кнопки.", icon: "dot.radiowaves.left.and.right", enabled: $preferences.clicksEnabled)
+            VStack(spacing: 12) {
+                HStack(spacing: 24) {
+                    clickColorControl(right: false)
+                    Divider().frame(height: 32)
+                    clickColorControl(right: true)
                 }
-                Label {
-                    Text("Правый — две")
-                } icon: {
-                    ZStack {
-                        Circle().strokeBorder(Color(nsColor: preferences.rightClickColor), lineWidth: 1.3)
-                        Circle().strokeBorder(Color(nsColor: preferences.rightClickColor), lineWidth: 1.1).padding(3)
-                    }.frame(width: 15, height: 15)
+                HStack {
+                    Spacer()
+                    Button("Сбросить цвета") {
+                        preferences.leftClickHex = nil
+                        preferences.rightClickHex = nil
+                    }
+                    .buttonStyle(.link).font(.system(size: 11))
+                    .disabled(preferences.leftClickHex == nil && preferences.rightClickHex == nil)
                 }
             }
-            .font(.system(size: 11)).foregroundStyle(.secondary)
             .padding(.leading, 35)
-            .opacity(preferences.clicksEnabled ? 1 : 0.4)
+            .disabled(!preferences.clicksEnabled)
         }.settingsCard()
+    }
+
+    private func clickColorControl(right: Bool) -> some View {
+        let color = Color(nsColor: right ? preferences.rightClickColor : preferences.leftClickColor)
+        let title = right ? "Правый клик" : "Левый клик"
+        let selection = Binding<Color>(get: {
+            Color(nsColor: right ? preferences.rightClickColor : preferences.leftClickColor)
+        }, set: { selected in
+            let hex = Preferences.hex(from: NSColor(selected))
+            if right { preferences.rightClickHex = hex } else { preferences.leftClickHex = hex }
+        })
+        return HStack(spacing: 9) {
+            ZStack {
+                Circle().strokeBorder(color, lineWidth: 1.5)
+                if right { Circle().strokeBorder(color, lineWidth: 1.2).padding(3) }
+            }.frame(width: 17, height: 17)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.system(size: 12, weight: .medium))
+                Text(right ? "Две волны" : "Одна волна").font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 6)
+            ColorPicker(title, selection: selection, supportsOpacity: false)
+                .labelsHidden().fixedSize()
+                .accessibilityLabel("Цвет: \(title.lowercased())")
+                .help("Выбрать цвет: \(title.lowercased())")
+        }.frame(maxWidth: .infinity)
     }
 
     private var keyboardSettings: some View {

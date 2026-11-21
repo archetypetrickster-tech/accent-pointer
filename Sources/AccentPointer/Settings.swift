@@ -63,6 +63,8 @@ final class Preferences: ObservableObject {
     @Published var lineWidth: Double { didSet { save() } }
     @Published var opacity: Double { didSet { save() } }
     @Published var tint: PointerTint { didSet { save() } }
+    @Published var leftClickHex: String? { didSet { save() } }
+    @Published var rightClickHex: String? { didSet { save() } }
     @Published var hudPosition: HUDPosition { didSet { save() } }
     @Published var hudDuration: Double { didSet { save() } }
     @Published var hotkeyAvailable = true
@@ -70,13 +72,29 @@ final class Preferences: ObservableObject {
     @Published var inputWorking = false
     @Published var secureInput = false
 
+    var leftClickColor: NSColor { Self.color(from: leftClickHex) ?? tint.nsColor }
+
     var rightClickColor: NSColor {
+        if let custom = Self.color(from: rightClickHex) { return custom }
         guard let left = tint.nsColor.usingColorSpace(.deviceRGB),
               let purple = NSColor.systemPurple.usingColorSpace(.deviceRGB) else { return .systemPurple }
         let distance = pow(left.redComponent - purple.redComponent, 2)
             + pow(left.greenComponent - purple.greenComponent, 2)
             + pow(left.blueComponent - purple.blueComponent, 2)
         return distance < 0.16 ? .systemOrange : .systemPurple
+    }
+
+    static func hex(from color: NSColor) -> String? {
+        guard let rgb = color.usingColorSpace(.sRGB) else { return nil }
+        func byte(_ component: CGFloat) -> Int { Int((min(1, max(0, component)) * 255).rounded()) }
+        return String(format: "%02X%02X%02X", byte(rgb.redComponent), byte(rgb.greenComponent), byte(rgb.blueComponent))
+    }
+
+    private static func color(from hex: String?) -> NSColor? {
+        guard let hex, hex.count == 6, let value = UInt32(hex, radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 255) / 255,
+                       green: CGFloat((value >> 8) & 255) / 255,
+                       blue: CGFloat(value & 255) / 255, alpha: 1)
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -91,6 +109,8 @@ final class Preferences: ObservableObject {
         lineWidth = min(5, max(1.5, defaults.double(forKey: "lineWidth")))
         opacity = min(1, max(0.35, defaults.double(forKey: "opacity")))
         tint = PointerTint(rawValue: defaults.string(forKey: "tint") ?? "") ?? .system
+        leftClickHex = defaults.string(forKey: "leftClickColor")
+        rightClickHex = defaults.string(forKey: "rightClickColor")
         hudPosition = HUDPosition(rawValue: defaults.string(forKey: "hudPosition") ?? "") ?? .bottomCenter
         hudDuration = min(4, max(0.6, defaults.double(forKey: "hudDuration")))
     }
@@ -102,6 +122,8 @@ final class Preferences: ObservableObject {
         defaults.set(lineWidth, forKey: "lineWidth")
         defaults.set(opacity, forKey: "opacity")
         defaults.set(tint.rawValue, forKey: "tint")
+        defaults.set(leftClickHex, forKey: "leftClickColor")
+        defaults.set(rightClickHex, forKey: "rightClickColor")
         defaults.set(hudPosition.rawValue, forKey: "hudPosition")
         defaults.set(hudDuration, forKey: "hudDuration")
     }
