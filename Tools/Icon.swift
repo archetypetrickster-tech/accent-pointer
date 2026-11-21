@@ -3,38 +3,23 @@ import AppKit
 let target = CommandLine.arguments[1]
 let image = NSImage(size: NSSize(width: 1024, height: 1024))
 image.lockFocus()
-let background = NSBezierPath(roundedRect: NSRect(x: 64, y: 64, width: 896, height: 896), xRadius: 205, yRadius: 205)
-NSGradient(colors: [NSColor(calibratedRed: 0.96, green: 0.98, blue: 1, alpha: 1),
-                    NSColor(calibratedRed: 0.77, green: 0.85, blue: 0.95, alpha: 1)])!.draw(in: background, angle: -80)
-NSGraphicsContext.saveGraphicsState()
-let shadow = NSShadow()
-shadow.shadowColor = NSColor.systemBlue.withAlphaComponent(0.18)
-shadow.shadowBlurRadius = 36
-shadow.shadowOffset = NSSize(width: 0, height: -12)
-shadow.set()
-let halo = NSBezierPath(ovalIn: NSRect(x: 238, y: 238, width: 548, height: 548))
-halo.lineWidth = 28
-NSColor.white.withAlphaComponent(0.9).setStroke()
-halo.stroke()
-halo.lineWidth = 17
-NSColor.systemBlue.withAlphaComponent(0.85).setStroke()
-halo.stroke()
-NSGraphicsContext.restoreGraphicsState()
-let cursor = NSBezierPath()
-cursor.move(to: NSPoint(x: 445, y: 654))
-cursor.line(to: NSPoint(x: 445, y: 326))
-cursor.line(to: NSPoint(x: 517, y: 402))
-cursor.line(to: NSPoint(x: 576, y: 274))
-cursor.line(to: NSPoint(x: 635, y: 302))
-cursor.line(to: NSPoint(x: 573, y: 431))
-cursor.line(to: NSPoint(x: 681, y: 438))
-cursor.close()
-NSColor.white.setStroke()
-cursor.lineWidth = 19
-cursor.lineJoinStyle = .round
-cursor.stroke()
-NSColor(calibratedWhite: 0.13, alpha: 1).setFill()
-cursor.fill()
+let background = NSBezierPath(roundedRect: NSRect(x: 64, y: 64, width: 896, height: 896), xRadius: 245, yRadius: 245)
+NSColor(calibratedWhite: 0.925, alpha: 1).setFill()
+background.fill()
+NSColor(calibratedWhite: 0.86, alpha: 1).setStroke()
+background.lineWidth = 12
+background.stroke()
+// The same native symbol used in the app header and the user's reference.
+let configuration = NSImage.SymbolConfiguration(pointSize: 450, weight: .medium)
+    .applying(NSImage.SymbolConfiguration(paletteColors: [NSColor.systemBlue]))
+if let cursor = NSImage(systemSymbolName: "cursorarrow.rays", accessibilityDescription: nil)?
+    .withSymbolConfiguration(configuration) {
+    let ratio = cursor.size.width / cursor.size.height
+    let height: CGFloat = 452
+    let width = height * ratio
+    cursor.draw(in: NSRect(x: (1024 - width) / 2, y: (1024 - height) / 2,
+                          width: width, height: height))
+}
 image.unlockFocus()
 try FileManager.default.createDirectory(atPath: target, withIntermediateDirectories: true)
 for size in [16, 32, 128, 256, 512] {

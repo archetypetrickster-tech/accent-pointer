@@ -95,11 +95,15 @@ struct SettingsView: View {
                     Circle().strokeBorder(preferences.tint.color, lineWidth: 1.5).frame(width: 15, height: 15)
                 }
                 Label {
-                    Text("Правый — две")
+                    Text("Правый — капли")
                 } icon: {
                     ZStack {
-                        Circle().strokeBorder(Color(nsColor: preferences.rightClickColor), lineWidth: 1.3)
-                        Circle().strokeBorder(Color(nsColor: preferences.rightClickColor), lineWidth: 1.1).padding(3)
+                        ForEach(0..<8) { index in
+                            Capsule().fill(Color(nsColor: preferences.rightClickColor))
+                                .frame(width: 2, height: 4)
+                                .offset(y: -6)
+                                .rotationEffect(.degrees(Double(index) * 45))
+                        }
                     }.frame(width: 15, height: 15)
                 }
             }
