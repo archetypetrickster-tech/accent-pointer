@@ -112,33 +112,20 @@ final class PointerOverlay {
         // Bound simultaneous windows even during a burst of clicks.
         if ripples.count >= 12, let id = ripples.keys.first { ripples.removeValue(forKey: id)?.close() }
         let id = UUID()
-        let size: CGFloat = right ? 208 : 144
+        let size: CGFloat = 144
         let window = OverlayPanel(size: NSSize(width: size, height: size))
         window.setFrameOrigin(NSPoint(x: point.x - size / 2, y: point.y - size / 2))
         let view = NSView(frame: NSRect(x: 0, y: 0, width: size, height: size))
         view.wantsLayer = true
-        let reduced = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        if right, let layer = view.layer {
-            ClickDroplets.add(to: layer, center: CGPoint(x: size / 2, y: size / 2),
-                             radius: CGFloat(preferences.radius), color: preferences.rightClickColor,
-                             reducedMotion: reduced)
-            window.contentView = view
-            ripples[id] = window
-            window.orderFrontRegardless()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.62) { [weak self] in
-                self?.ripples.removeValue(forKey: id)?.close()
-            }
-            return
-        }
         let radius = min(64, CGFloat(preferences.radius) + 18)
-        let radii = [radius]
+        let radii = right ? [radius, radius - 8] : [radius]
         let shapes = radii.map { r -> CAShapeLayer in
             let shape = CAShapeLayer()
             shape.frame = view.bounds
             shape.path = CGPath(ellipseIn: CGRect(x: size / 2 - r, y: size / 2 - r,
                                                  width: r * 2, height: r * 2), transform: nil)
             shape.fillColor = nil
-            shape.strokeColor = preferences.tint.nsColor.cgColor
+            shape.strokeColor = (right ? preferences.rightClickColor : preferences.tint.nsColor).cgColor
             shape.lineWidth = 2
             shape.shadowColor = NSColor.black.cgColor
             shape.shadowOpacity = 0.18
@@ -150,6 +137,7 @@ final class PointerOverlay {
         window.contentView = view
         ripples[id] = window
         window.orderFrontRegardless()
+        let reduced = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         for shape in shapes {
           if !reduced {
             let scale = CABasicAnimation(keyPath: "transform.scale")
@@ -175,73 +163,6 @@ final class PointerOverlay {
         ripples.removeAll()
     }
     func stop() { timer?.invalidate(); timer = nil; panel.orderOut(nil); clearRipples() }
-}
-
-enum ClickDroplets {
-    static let count = 8
-    static let duration: CFTimeInterval = 0.56
-
-    static func path(length: CGFloat, width: CGFloat) -> CGPath {
-        // Rounded leading edge, tapered trailing edge; the long axis points outward.
-        let path = CGMutablePath()
-        let tail = CGPoint(x: -length * 0.55, y: 0)
-        let head = CGPoint(x: length * 0.45, y: 0)
-        path.move(to: tail)
-        path.addCurve(to: head,
-                      control1: CGPoint(x: -length * 0.08, y: -width * 0.65),
-                      control2: CGPoint(x: length * 0.45, y: -width * 0.65))
-        path.addCurve(to: tail,
-                      control1: CGPoint(x: length * 0.45, y: width * 0.65),
-                      control2: CGPoint(x: -length * 0.08, y: width * 0.65))
-        path.closeSubpath()
-        return path
-    }
-
-    static func add(to layer: CALayer, center: CGPoint, radius: CGFloat,
-                    color: NSColor, reducedMotion: Bool) {
-        let variation: [CGFloat] = [0, 7, -3, 4, 1, -5, 6, -1]
-        for index in 0..<count {
-            let angle = CGFloat(index) * .pi / 4 + .pi / 8
-            let startRadius = max(16, radius * 0.8)
-            let endRadius = radius + 26 + variation[index]
-            let start = CGPoint(x: center.x + cos(angle) * startRadius,
-                                y: center.y + sin(angle) * startRadius)
-            let end = CGPoint(x: center.x + cos(angle) * endRadius,
-                              y: center.y + sin(angle) * endRadius)
-            let drop = CAShapeLayer()
-            drop.path = path(length: 11 + CGFloat(index % 3), width: 5.5)
-            drop.position = reducedMotion ? start : end
-            drop.transform = CATransform3DMakeRotation(angle, 0, 0, 1)
-            drop.fillColor = color.cgColor
-            drop.strokeColor = NSColor.white.withAlphaComponent(0.4).cgColor
-            drop.lineWidth = 0.5
-            drop.shadowColor = NSColor.black.cgColor
-            drop.shadowOpacity = 0.18
-            drop.shadowRadius = 1
-            drop.shadowOffset = .zero
-            drop.opacity = 0
-            layer.addSublayer(drop)
-
-            if !reducedMotion {
-                let motion = CABasicAnimation(keyPath: "position")
-                motion.fromValue = NSValue(point: start)
-                motion.toValue = NSValue(point: end)
-                motion.duration = duration
-                motion.timingFunction = CAMediaTimingFunction(controlPoints: 0.15, 0.7, 0.25, 1)
-                drop.add(motion, forKey: "flight")
-                let scale = CAKeyframeAnimation(keyPath: "transform.scale")
-                scale.values = [0.55, 1, 0.45]
-                scale.keyTimes = [0, 0.2, 1]
-                scale.duration = duration
-                drop.add(scale, forKey: "size")
-            }
-            let fade = CAKeyframeAnimation(keyPath: "opacity")
-            fade.values = [0.9, 0.85, 0]
-            fade.keyTimes = [0, 0.25, 1]
-            fade.duration = reducedMotion ? 0.25 : duration
-            drop.add(fade, forKey: "fade")
-        }
-    }
 }
 
 struct ChordView: View {

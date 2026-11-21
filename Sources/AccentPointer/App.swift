@@ -145,7 +145,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         NSApp.mainMenu = main
     }
     @objc private func about() {
-        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Акцент", .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.1",
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Акцент", .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.2",
             .credits: NSAttributedString(string: "Курсор, клики и сочетания клавиш для лекций.\nРаботает локально, не сохраняет нажатия.")])
     }
     @objc private func quit() { NSApp.terminate(nil) }
