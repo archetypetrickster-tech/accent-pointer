@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     let hotkey = PauseHotkey()
     private var window: NSWindow?
     private var status: NSStatusItem?
+    private var adaptiveIcon: AdaptiveAppIcon?
     private var subscriptions = Set<AnyCancellable>()
     private var changeWork: DispatchWorkItem?
     private var stopping = false
@@ -24,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             return
         }
         buildApplicationMenu()
+        adaptiveIcon = AdaptiveAppIcon()
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         status = item
         let menu = NSMenu()
@@ -145,7 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         NSApp.mainMenu = main
     }
     @objc private func about() {
-        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Акцент", .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.3",
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Акцент", .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.4",
             .credits: NSAttributedString(string: "Курсор, клики и сочетания клавиш для лекций.\nРаботает локально, не сохраняет нажатия.")])
     }
     @objc private func quit() { NSApp.terminate(nil) }

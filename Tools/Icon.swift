@@ -1,17 +1,19 @@
 import AppKit
 
 let target = CommandLine.arguments[1]
+let dark = CommandLine.arguments.contains("--dark")
 let image = NSImage(size: NSSize(width: 1024, height: 1024))
 image.lockFocus()
 let background = NSBezierPath(roundedRect: NSRect(x: 64, y: 64, width: 896, height: 896), xRadius: 245, yRadius: 245)
-NSColor(calibratedWhite: 0.925, alpha: 1).setFill()
+NSColor(calibratedWhite: dark ? 0.14 : 0.925, alpha: 1).setFill()
 background.fill()
-NSColor(calibratedWhite: 0.86, alpha: 1).setStroke()
+NSColor(calibratedWhite: dark ? 0.26 : 0.86, alpha: 1).setStroke()
 background.lineWidth = 12
 background.stroke()
 // The same native symbol used in the app header and the user's reference.
 let configuration = NSImage.SymbolConfiguration(pointSize: 450, weight: .medium)
-    .applying(NSImage.SymbolConfiguration(paletteColors: [NSColor.systemBlue]))
+    .applying(NSImage.SymbolConfiguration(paletteColors: [dark
+        ? NSColor(srgbRed: 0.24, green: 0.62, blue: 1, alpha: 1) : NSColor.systemBlue]))
 if let cursor = NSImage(systemSymbolName: "cursorarrow.rays", accessibilityDescription: nil)?
     .withSymbolConfiguration(configuration) {
     let ratio = cursor.size.width / cursor.size.height
